@@ -89,7 +89,7 @@ export class ChuckAgent {
 
       if (response.includes('COMMAND:')) {
         acted = true;
-        const cmd = response.split('COMMAND:')[1].trim();
+        const cmd = response.split('COMMAND:')[1].split('\n')[0].trim();
         console.log(chalk.yellow(`\n[>] Executing: ${cmd}`));
         
         const output = await runCommand(cmd);

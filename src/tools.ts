@@ -12,6 +12,13 @@ import { WebFetchTool } from './tools/WebFetchTool/WebFetchTool.js'
 import { TaskStopTool } from './tools/TaskStopTool/TaskStopTool.js'
 import { BriefTool } from './tools/BriefTool/BriefTool.js'
 import { CVESearchTool } from './tools/CVESearchTool.js'
+import { ExploitSearchTool } from './tools/ExploitSearchTool.js'
+import { LocalVulnerabilityCheckTool } from './tools/LocalVulnerabilityCheckTool.js'
+import { ReverseShellListenerTool } from './tools/ReverseShellListenerTool.js'
+import { ReverseShellGeneratorTool } from './tools/ReverseShellGeneratorTool.js'
+import { GTFOBinsCheckTool } from './tools/GTFOBinsCheckTool.js'
+import { ServerVersionCheckerTool } from './tools/ServerVersionCheckerTool.js'
+import { VulnerabilityReportTool } from './tools/VulnerabilityReportTool.js'
 // Dead code elimination: conditional import for ant-only tools
 /* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const SleepTool =
@@ -193,6 +200,13 @@ export function getAllBaseTools(): Tools {
     WebFetchTool,
     TodoWriteTool,
     CVESearchTool,
+    ExploitSearchTool,
+    LocalVulnerabilityCheckTool,
+    ReverseShellListenerTool,
+    ReverseShellGeneratorTool,
+    GTFOBinsCheckTool,
+    ServerVersionCheckerTool,
+    VulnerabilityReportTool,
     WebSearchTool,
     TaskStopTool,
     AskUserQuestionTool,

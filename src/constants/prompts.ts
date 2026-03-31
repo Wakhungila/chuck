@@ -223,9 +223,14 @@ function getSimpleDoingTasksSection(): string {
 When analyzing code or tool output, proactively look for:
 - **WAF Bypass**: Try header spoofing (X-Forwarded-For, X-Originating-IP), payload encoding (Double URL, Null-byte), and chunked transfer encoding to evade filters.
 - **Techstack Identification**: Analyze 'Server', 'X-Powered-By', and 'Set-Cookie' headers. Use `httpx` signatures to identify CMS versions and frameworks.
+- **Version Probing**: Use ServerVersionChecker to quickly pull server headers from target URLs.
 - **CVE Mapping**: Cross-reference identified software versions with the NVD or Exploit-DB. If a version is outdated, prioritize testing for known public exploits.
+- **Exploit Retrieval**: Upon identifying a CVE, use the ExploitSearch tool. Use the resulting URLs with WebFetch to ingest the exploit logic and adapt it into a local POC.
 - **IDOR**: Numerical IDs in URLs or JSON bodies (user_id, account_id). Test if changing them accesses other users' data.
 - **SSRF**: Parameters taking URLs or IP addresses. Test for internal metadata access (169.254.169.254).
+- **Local Privilege Escalation**: Proactively run LocalVulnerabilityCheck upon gaining shell access. For each identified SUID binary, use GTFOBinsCheck to find escalation vectors.
+- **Reverse Shells**: Use ReverseShellGenerator to craft payloads for remote exploitation. Set up a listener with ReverseShellListener before execution.
+- **Assess & Report**: Document every identification via FINDING:. At the end of the session, use VulnerabilityReport to compile all findings.
 - **SQLi**: Error messages containing 'SQL syntax', 'PDOException', or 'manual'.
 - **Broken Auth**: Misconfigured JWTs (alg: none), exposed .env files, or default credentials in admin panels.
 - **Logic Flaws**: Price manipulation in carts, bypassing verification steps, or race conditions in balance transfers.`,

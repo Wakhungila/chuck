@@ -3,6 +3,7 @@ import { runCommand } from '../tools/shell';
 import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { VulnerabilityReportTool } from './VulnerabilityReportTool';
 
 class TaskTracker {
   private tasks: { id: number; text: string; status: 'pending' | 'done' }[] = [];
@@ -24,6 +25,7 @@ class TaskTracker {
 
 export class ChuckAgent {
   private taskTracker = new TaskTracker();
+  private findingsList: string[] = [];
 
   constructor(private model: string = 'llama3') {}
 
@@ -35,8 +37,14 @@ export class ChuckAgent {
     To run a command, respond with: COMMAND: <cmd>.
     To document a vulnerability finding, respond with: FINDING: <details>.
     To manage your plan, use: TASK: ADD <description> or TASK: DONE <id>.
+    To generate the final report, use the VulnerabilityReport tool.
     If you are done, respond with: FINISHED: <summary>.
-    
+
+    # Exploitation Priority
+    If you identify a software version, use CVESearch immediately. 
+    If a CVE is found, your priority is to use ExploitSearch to find Proof-of-Concept code before attempting manual exploitation.
+    If you gain shell access, run LocalVulnerabilityCheck and use GTFOBinsCheck on any interesting binaries found.
+    Use ReverseShellGenerator to craft payloads for exploitation.
     Focus on high-impact vulnerabilities: RCE, SQLi, IDOR, SSRF, and Logic Flaws.`;
 
     let currentPrompt = `${systemPrompt}\nGoal: ${goal}\nTasks:\n${this.taskTracker.getSummary()}`;
@@ -46,9 +54,18 @@ export class ChuckAgent {
     while (iterations < maxIterations) {
       const response = await queryOllama(currentPrompt, this.model);
       console.log(chalk.gray(`[Chuck]: ${response}`));
+      let acted = false;
 
       if (response.includes('FINISHED:')) {
         console.log(chalk.green(`\n[+] Task Complete.`));
+        if (this.findingsList.length > 0) {
+          console.log(chalk.blue(`[*] Generating final report...`));
+          const report = await VulnerabilityReportTool.call({
+            findings: this.findingsList,
+            target: goal
+          });
+          console.log(chalk.green(report));
+        }
         break;
       }
 
@@ -67,11 +84,13 @@ export class ChuckAgent {
       if (response.includes('FINDING:')) {
         const finding = response.split('FINDING:')[1].trim();
         console.log(chalk.red(`\n[!] VULNERABILITY IDENTIFIED: ${finding}`));
+        this.findingsList.push(finding);
       }
 
       if (response.includes('COMMAND:')) {
+        acted = true;
         const cmd = response.split('COMMAND:')[1].trim();
-        console.log(source_default.yellow(`\n[>] Executing: ${cmd}`));
+        console.log(chalk.yellow(`\n[>] Executing: ${cmd}`));
         
         const output = await runCommand(cmd);
 

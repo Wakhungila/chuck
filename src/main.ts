@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { render } from 'ink';
+import React from 'react';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { verifyOllamaService } from './services/ollama';
@@ -7,6 +10,13 @@ import { PlannerAgent } from './tools/PlannerAgent';
 import { ToolRouter } from './tools/ToolRouter';
 import { CriticAgent } from './tools/CriticAgent';
 import './tools/ToolRegistry'; // Ensure tools are initialized
+
+// Before the ExecutionLoop starts:
+console.clear();
+render(<WelcomeScreen />);
+
+// Then start your normal ExecutionLoop + spinner after a short delay or on input
+
 
 const program = new Command();
 

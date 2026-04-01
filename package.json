@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/main.ts",
   "scripts": {
-    "build": "bun build ./src/main.ts --outfile chuck-ai --target node --bundle",
+   "build": "bun build ./src/main.tsx --outfile chuck-ai --target node --bundle --external react-devtools-core --sourcemap && chmod +x chuck-ai",
     "start": "bun ./chuck-ai",
     "dev": "bun run src/main.ts"
   },

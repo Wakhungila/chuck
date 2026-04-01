@@ -7,14 +7,37 @@ import { VulnerabilityReportTool } from './VulnerabilityReportTool';
 
 class TaskTracker {
   private tasks: { id: number; text: string; status: 'pending' | 'done' }[] = [];
+  private storagePath = path.join(process.cwd(), '.chuck', 'tasks.json');
 
-  addTask(text: string) {
-    this.tasks.push({ id: this.tasks.length + 1, text, status: 'pending' });
+  async load() {
+    try {
+      const data = await fs.readFile(this.storagePath, 'utf-8');
+      this.tasks = JSON.parse(data);
+    } catch (e) {
+      this.tasks = [];
+    }
   }
 
-  completeTask(id: number) {
+  async save() {
+    try {
+      await fs.mkdir(path.dirname(this.storagePath), { recursive: true });
+      await fs.writeFile(this.storagePath, JSON.stringify(this.tasks, null, 2));
+    } catch (e) {
+      console.error("Failed to save tasks:", e);
+    }
+  }
+
+  async addTask(text: string) {
+    this.tasks.push({ id: this.tasks.length + 1, text, status: 'pending' });
+    await this.save();
+  }
+
+  async completeTask(id: number) {
     const task = this.tasks.find(t => t.id === id);
-    if (task) task.status = 'done';
+    if (task) {
+      task.status = 'done';
+      await this.save();
+    }
   }
 
   getSummary() {
@@ -25,17 +48,19 @@ class TaskTracker {
 
 export class ChuckAgent {
   private taskTracker = new TaskTracker();
-  private findingsList: string[] = [];
+  private findingsList: any[] = [];
 
   constructor(private model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3') {}
 
   async solve(goal: string) {
     console.log(chalk.blue(`[*] Chuck is thinking about: ${goal}`));
     
+    await this.taskTracker.load();
+    
     const systemPrompt = `You are Chuck, a local autonomous operative. 
     You follow a recursive Goal -> Plan -> Execute -> Observe loop.
     To run a command, respond with: COMMAND: <cmd>.
-    To document a vulnerability finding, respond with: FINDING: <details>.
+    To document a vulnerability finding, respond with: FINDING: {"name": "...", "description": "...", "severity": "low|medium|high", "references": ["..."]}.
     To manage your plan, use: TASK: ADD <description> or TASK: DONE <id>.
     To generate the final report, use the VulnerabilityReport tool.
     If you are done, respond with: FINISHED: <summary>.
@@ -71,20 +96,25 @@ export class ChuckAgent {
 
       if (response.includes('TASK: ADD')) {
         const taskDesc = response.split('TASK: ADD')[1].split('\n')[0].trim();
-        this.taskTracker.addTask(taskDesc);
+        await this.taskTracker.addTask(taskDesc);
         console.log(chalk.cyan(`[+] Added Task: ${taskDesc}`));
       }
 
       if (response.includes('TASK: DONE')) {
         const taskId = parseInt(response.split('TASK: DONE')[1].trim());
-        this.taskTracker.completeTask(taskId);
+        await this.taskTracker.completeTask(taskId);
         console.log(chalk.cyan(`[+] Completed Task: ${taskId}`));
       }
 
       if (response.includes('FINDING:')) {
-        const finding = response.split('FINDING:')[1].trim();
-        console.log(chalk.red(`\n[!] VULNERABILITY IDENTIFIED: ${finding}`));
-        this.findingsList.push(finding);
+        const findingJson = response.split('FINDING:')[1].trim();
+        try {
+          const finding = JSON.parse(findingJson);
+          console.log(chalk.red(`\n[!] VULNERABILITY IDENTIFIED: ${finding.name}`));
+          this.findingsList.push(finding);
+        } catch {
+          console.log(chalk.yellow(`\n[!] Failed to parse finding JSON`));
+        }
       }
 
       if (response.includes('COMMAND:')) {

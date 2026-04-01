@@ -4,6 +4,15 @@ import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { VulnerabilityReportTool } from './VulnerabilityReportTool';
+import { orchestratorUI } from '../utils/ux/SystemSpinner';
+
+async function streamMatrixText(text: string) {
+  for (const char of text) {
+    process.stdout.write(chalk.green(char));
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  process.stdout.write('\n');
+}
 
 class TaskTracker {
   private tasks: { id: number; text: string; status: 'pending' | 'done' }[] = [];
@@ -77,7 +86,13 @@ export class ChuckAgent {
     const maxIterations = 10; // Increased for autonomous exploration
 
     while (iterations < maxIterations) {
+      // Dynamic stage detection based on goals/findings
+      const stage = iterations === 0 ? 'RECON' : this.findingsList.length > 0 ? 'EXPLOIT' : 'ANALYZER';
+      orchestratorUI.start(stage);
+      
       const response = await queryOllama(currentPrompt, this.model);
+      
+      orchestratorUI.stop(true, "Inference received");
       console.log(chalk.gray(`[Chuck]: ${response}`));
       let acted = false;
 
@@ -89,7 +104,7 @@ export class ChuckAgent {
             findings: this.findingsList,
             target: goal
           });
-          console.log(chalk.green(report));
+          await streamMatrixText(report);
         }
         break;
       }

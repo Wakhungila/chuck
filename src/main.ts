@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { ChuckAgent } from './tools/agent';
 import chalk from 'chalk';
 import { verifyOllamaService } from './services/ollama';
+import { ExecutionLoop } from './core/ExecutionLoop';
+import { PlannerAgent } from './agents/PlannerAgent';
+import { ToolRouter } from './agents/ToolRouter';
+import { CriticAgent } from './agents/CriticAgent';
 
 const program = new Command();
 
@@ -12,10 +15,15 @@ program
   .argument('<goal>', 'The task for Chuck to perform')
   .action(async (goal) => {
     try {
-      const model = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3';
+      const model = process.env.CHUCK_CODE_OLLAMA_MODEL || 'mistral:7b-instruct-q4_0';
       await verifyOllamaService(model);
-      const agent = new ChuckAgent();
-      await agent.solve(goal);
+
+      const loop = new ExecutionLoop(
+        new PlannerAgent(),
+        new ToolRouter(),
+        new CriticAgent()
+      );
+      await loop.start(goal);
     } catch (error) {
       console.error(chalk.red(`[!] Critical Error: ${error instanceof Error ? error.message : String(error)}`));
       process.exit(1);

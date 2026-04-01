@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import { VERB_POOL } from './VerbPool.js';
-import { SystemStage } from '../tools/Types.js';
+import { VERB_POOL } from './VerbPool';
+import { SystemStage } from '../tools/Types';
 
 export class SystemSpinner {
   private frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];

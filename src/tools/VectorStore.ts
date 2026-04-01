@@ -48,8 +48,9 @@ export class VectorStore {
 
   private async getEmbedding(text: string): Promise<number[]> {
     const host = process.env.OLLAMA_HOST || 'http://localhost:11434';
-    const res = await axios.post(`${host}/api/embeddings`, {
-      model: process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3',
+    const endpoint = `${host.replace(/\/api\/generate$/, '').replace(/\/$/, '')}/api/embeddings`;
+    const res = await axios.post(endpoint, {
+      model: process.env.CHUCK_CODE_OLLAMA_MODEL || 'mistral:7b-instruct-q4_0',
       prompt: text
     });
     return res.data.embedding;

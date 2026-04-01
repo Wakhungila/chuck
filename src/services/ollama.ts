@@ -1,7 +1,7 @@
 import axios from 'axios';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { logForDebugging } from '../utils/debug.js';
+import { logForDebugging } from '../utils/debug';
 
 export interface OllamaResponse {
   response: string;
@@ -152,7 +152,7 @@ export async function verifyOllamaService(model?: string): Promise<void> {
   }
 }
 
-export async function queryOllama(prompt: string, model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3'): Promise<string> {
+export async function queryOllama(prompt: string, model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'mistral:7b-instruct-q4_0'): Promise<string> {
   const host = process.env.OLLAMA_HOST || 'http://localhost:11434';
   
   // Ensure we append the correct path if only the base URL is provided

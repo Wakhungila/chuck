@@ -11,7 +11,7 @@ export class ToolRouter {
   private agents: Record<string, any>;
 
   constructor() {
-    this.model = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3';
+    this.model = process.env.CHUCK_CODE_OLLAMA_MODEL || 'mistral:7b-instruct-q4_0';
     this.agents = {
       recon: new ReconAgent(),
       scanner: new ScannerAgent(),

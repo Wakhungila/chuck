@@ -3,7 +3,7 @@ import { ExploitSearchTool } from './ExploitSearchTool';
 import { VulnerabilityReportTool } from './VulnerabilityReportTool';
 import { NucleiTool } from './NucleiTool';
 import { HttpScanTool } from './HttpScanTool';
-import { FuzzingOrchestrator } from '../utils/FuzzingOrchestrator.js';
+import { FuzzingOrchestrator } from '../utils/FuzzingOrchestrator';
 import { z } from 'zod';
 
 /**

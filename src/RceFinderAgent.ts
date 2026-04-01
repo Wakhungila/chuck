@@ -1,8 +1,8 @@
-import { SecurityOrchestrator } from '../services/security/securityOrchestrator.js';
-import { ReasoningEngine } from '../services/reasoningEngine.js';
-import { queryOllama } from '../services/ollama.js';
-import { runCommand } from '../tools/shell.js';
-import { Vulnerability } from '../services/complianceLogger.js';
+import { SecurityOrchestrator } from '../services/security/securityOrchestrator';
+import { ReasoningEngine } from '../services/reasoningEngine';
+import { queryOllama } from '../services/ollama';
+import { runCommand } from '../tools/shell';
+import { Vulnerability } from '../services/complianceLogger';
 import chalk from 'chalk';
 import path from 'node:path';
 import fs from 'node:fs/promises';
@@ -13,7 +13,7 @@ export class RceFinderAgent {
   private findings: Vulnerability[] = [];
   private campaignId: string | null = null;
 
-  constructor(private model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3') {
+  constructor(private model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'mistral:7b-instruct-q4_0') {
     this.orchestrator = new SecurityOrchestrator();
     this.reasoningEngine = new ReasoningEngine(this.model);
     

@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { VulnerabilityReportTool } from './VulnerabilityReportTool';
-import { orchestratorUI } from '../utils/ux/SystemSpinner';
+import { orchestratorUI } from '../services/SystemSpinner';
 
 async function streamMatrixText(text: string) {
   for (const char of text) {
@@ -59,7 +59,7 @@ export class ChuckAgent {
   private taskTracker = new TaskTracker();
   private findingsList: any[] = [];
 
-  constructor(private model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3') {}
+  constructor(private model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'mistral:7b-instruct-q4_0') {}
 
   async solve(goal: string) {
     console.log(chalk.blue(`[*] Chuck is thinking about: ${goal}`));

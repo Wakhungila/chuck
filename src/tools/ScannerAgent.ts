@@ -1,6 +1,6 @@
-import { BaseAgent } from '../BaseAgent';
-import { PlanStep, SessionState, AgentResponse } from '../../tools/Types';
-import { queryOllama } from '../../services/ollama';
+import { BaseAgent } from './BaseAgent';
+import { PlanStep, SessionState, AgentResponse } from './Types';
+import { queryOllama } from '../services/ollama';
 
 export class ScannerAgent implements BaseAgent {
   role = 'scanner';

@@ -4,7 +4,7 @@ import { ToolRouter } from './ToolRouter';
 import { CriticAgent } from './CriticAgent';
 import { orchestratorUI } from '../services/SystemSpinner';
 import { MemoryManager } from './MemoryManager';
-import { VulnerabilityKB } from '../memory/VulnerabilityKB';
+import { VulnerabilityKB } from './VulnerabilityKB';
 import chalk from 'chalk';
 
 export class ExecutionLoop {
@@ -55,19 +55,22 @@ export class ExecutionLoop {
         orchestratorUI.setStage(stageMap[step.agent] || 'ANALYZER', step.description);
         
         // 2. Execution via Tool Routing
+        let toolResult: any;
         try {
-          const toolResult = await this.router.executeStep(step, state);
+          toolResult = await this.router.executeStep(step, state);
           step.result = toolResult;
           step.status = 'completed';
         } catch (error) {
-          step.result = error instanceof Error ? error.message : String(error);
-          console.error(chalk.red(`[!] Step ${step.id} Failed: ${step.result}`));
+          toolResult = error instanceof Error ? error.message : String(error);
+          console.error(chalk.red(`[!] Step ${step.id} Failed: ${toolResult}`));
+          step.result = toolResult;
           step.status = 'failed';
         }
 
         // Save raw observations for short-term search
-        if (typeof toolResult === 'string') {
-          await this.memory.remember(toolResult, 'result', { stepId: step.id });
+        if (toolResult) {
+          const content = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
+          await this.memory.remember(content, 'result', { stepId: step.id });
         }
 
         // 3. Critique & Reflection

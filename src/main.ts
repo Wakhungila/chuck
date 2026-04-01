@@ -2,11 +2,11 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { verifyOllamaService } from './services/ollama';
-import { ExecutionLoop } from './core/ExecutionLoop';
-import { PlannerAgent } from './agents/PlannerAgent';
-import { ToolRouter } from './agents/ToolRouter';
-import { CriticAgent } from './agents/CriticAgent';
-import './core/ToolRegistry'; // Ensure tools are initialized
+import { ExecutionLoop } from './tools/ExecutionLoop';
+import { PlannerAgent } from './tools/PlannerAgent';
+import { ToolRouter } from './tools/ToolRouter';
+import { CriticAgent } from './tools/CriticAgent';
+import './tools/ToolRegistry'; // Ensure tools are initialized
 
 const program = new Command();
 

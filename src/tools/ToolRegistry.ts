@@ -1,8 +1,8 @@
-import { CVESearchTool } from '../tools/CVESearchTool';
-import { ExploitSearchTool } from '../tools/ExploitSearchTool';
-import { VulnerabilityReportTool } from '../tools/VulnerabilityReportTool';
-import { NucleiTool } from '../tools/NucleiTool';
-import { HttpScanTool } from '../tools/HttpScanTool';
+import { CVESearchTool } from './CVESearchTool';
+import { ExploitSearchTool } from './ExploitSearchTool';
+import { VulnerabilityReportTool } from './VulnerabilityReportTool';
+import { NucleiTool } from './NucleiTool';
+import { HttpScanTool } from './HttpScanTool';
 import { FuzzingOrchestrator } from '../utils/FuzzingOrchestrator.js';
 import { z } from 'zod';
 

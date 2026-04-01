@@ -1,6 +1,6 @@
-import { BaseAgent } from '../BaseAgent';
-import { PlanStep, SessionState, AgentResponse } from '../../tools/Types';
-import { queryOllama } from '../../services/ollama';
+import { BaseAgent } from '../tools/BaseAgent';
+import { PlanStep, SessionState, AgentResponse } from '../tools/Types';
+import { queryOllama } from '../services/ollama';
 
 export class FuzzingAgent implements BaseAgent {
   role = 'fuzz';

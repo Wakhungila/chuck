@@ -1,9 +1,10 @@
 import { queryOllama } from '../services/ollama';
 import { PlanStep, SessionState } from '../tools/Types';
-import { toolRegistry } from '../core/ToolRegistry';
+import { toolRegistry } from './ToolRegistry';
 import chalk from 'chalk';
-import { ReconAgent } from '../agents/specialized/ReconAgent';
-import { ScannerAgent } from '../agents/specialized/ScannerAgent';
+import { ReconAgent } from './ReconAgent';
+import { ScannerAgent } from './ScannerAgent';
+import { FuzzingAgent } from '../utils/FuzzingAgent';
 
 export class ToolRouter {
   private model: string;

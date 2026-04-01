@@ -1,5 +1,5 @@
 import { queryOllama } from '../services/ollama';
-import { PlanStep, SessionState } from '../core/Types';
+import { PlanStep, SessionState } from './Types';
 
 export class CriticAgent {
   async review(step: PlanStep, state: SessionState) {

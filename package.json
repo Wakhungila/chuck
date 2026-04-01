@@ -1,37 +1,22 @@
 {
   "name": "chuck",
-  "version": "0.1.0",
-  "description": "Chuck - Autonomous Pentesting Agent",
+  "version": "0.2.0",
   "type": "module",
-  "main": "src/main.ts",
   "scripts": {
-   "build": "bun build ./src/main.tsx --outfile chuck-ai --target node --bundle --external react-devtools-core --sourcemap && chmod +x chuck-ai",
-    "start": "bun ./chuck-ai",
-    "dev": "bun run src/main.ts"
+    "dev": "bun run src/main.tsx",
+    "build": "bun build ./src/main.tsx --outfile chuck-ai --target node --bundle --external react-devtools-core --sourcemap && chmod +x chuck-ai",
+    "start": "./chuck-ai"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.36.3",
-    "@commander-js/extra-typings": "^12.0.1",
-    "axios": "^1.7.0",
+    "axios": "^1.7.7",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
-    "execa": "^8.0.1",
-    "ignore": "^5.3.1",
     "ink": "^6.8.0",
-    "ink-spinner": "^5.0.0",
-    "lodash-es": "^4.17.21",
     "react": "^19.2.4",
-    "react-dom": "^18.2.0",
+    "ink-spinner": "^5.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/lodash-es": "^4.17.12",
-    "@types/node": "^20.12.12",
-    "@types/qrcode": "^1.5.5",
-    "@types/react": "^18.2.55",
-    "@types/react-dom": "^18.2.19",
-    "bun-types": "latest",
-    "react-devtools-core": "^7.0.1",
-    "typescript": "^5.4.5"
+    "react-devtools-core": "^5.3.1"
   }
 }

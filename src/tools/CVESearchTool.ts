@@ -5,7 +5,7 @@ export const CVESearchTool = {
   name: 'CVESearch',
   description: 'Search the NVD API for recent vulnerabilities associated with a specific software product and version.',
   inputSchema: z.object({
-    keyword: z.string().description('The product name and version (e.g., "Apache 2.4.49" or "WordPress 5.8.1").'),
+    keyword: z.string() .describe('The product name and version (e.g., "Apache 2.4.49" or "WordPress 5.8.1").'),
   }),
 
   async call(input: { keyword: string }) {

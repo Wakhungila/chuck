@@ -4,8 +4,8 @@ export const ReverseShellGeneratorTool = {
   name: 'ReverseShellGenerator',
   description: 'Generates various reverse shell one-liners (Bash, Python, Perl) based on the specified listener IP and port.',
   inputSchema: z.object({
-    ip: z.string().description('The listener IP address (LHOST).'),
-    port: z.number().description('The listener port (LPORT).'),
+    ip: z.string() .describe('The listener IP address (LHOST).'),
+    port: z.number() .describe('The listener port (LPORT).'),
   }),
 
   async call(input: { ip: string, port: number }) {

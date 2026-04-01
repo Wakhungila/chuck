@@ -85,8 +85,44 @@ async function pullModel(model: string, host: string): Promise<void> {
   const endpoint = `${hostClean}/api/pull`;
   console.log(`[*] Model "${model}" not found. Attempting to pull from Ollama library...`);
   try {
-    await axios.post(endpoint, { name: model, stream: false }, { timeout: 0 });
-    console.log(`[+] Successfully pulled ${model}`);
+    const response = await axios.post(endpoint, { name: model, stream: true }, {
+      timeout: 0,
+      responseType: 'stream'
+    });
+
+    return new Promise((resolve, reject) => {
+      let buffer = '';
+      response.data.on('data', (chunk: Buffer) => {
+        buffer += chunk.toString();
+        const lines = buffer.split('\\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line) continue;
+          try {
+            const data = JSON.parse(line);
+            if (data.status) {
+              if (data.total && data.completed) {
+                const percent = Math.round((data.completed / data.total) * 100);
+                const barLength = 25;
+                const filledLength = Math.round((barLength * percent) / 100);
+                const bar = '█'.repeat(filledLength) + '░'.repeat(barLength - filledLength);
+                process.stdout.write(`\\r[*] Pulling ${model}: [${bar}] ${percent}% | ${data.status}${' '.repeat(10)}`);
+              } else {
+                process.stdout.write(`\\r[*] Pulling ${model}: ${data.status}${' '.repeat(40)}`);
+              }
+            }
+          } catch (e) { /* ignore partial JSON chunks */ }
+        }
+      });
+
+      response.data.on('end', () => {
+        process.stdout.write('\\n[+] Successfully pulled ' + model + '\\n');
+        resolve();
+      });
+
+      response.data.on('error', (err: Error) => reject(err));
+    });
   } catch (error) {
     throw new Error(`Failed to pull model "${model}": ${error instanceof Error ? error.message : String(error)}`);
   }

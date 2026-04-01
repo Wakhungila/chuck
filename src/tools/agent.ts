@@ -27,7 +27,7 @@ export class ChuckAgent {
   private taskTracker = new TaskTracker();
   private findingsList: string[] = [];
 
-  constructor(private model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'llama3') {}
+  constructor(private model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3') {}
 
   async solve(goal: string) {
     console.log(chalk.blue(`[*] Chuck is thinking about: ${goal}`));

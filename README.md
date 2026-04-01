@@ -35,7 +35,7 @@ Unlike general-purpose coding assistants, Chuck operates with an **Adversarial M
    ```
 3. **Configuration**: Set your target Ollama model.
    ```bash
-   export CHUCK_CODE_OLLAMA_MODEL='llama3'
+   export CHUCK_CODE_OLLAMA_MODEL='phi3'
    ```
 
 ### Local Inference (No-Auth)

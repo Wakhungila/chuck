@@ -1,6 +1,6 @@
 import { isEnvTruthy } from "../../utils/envUtils.js";
 
-export async function queryOllama(messages: any[], model: string = "llama3") {
+export async function queryOllama(messages: any[], model: string = "phi3") {
   const endpoint = process.env.OLLAMA_HOST || "http://localhost:11434";
   
   // Transform internal message format to Ollama/OpenAI format
@@ -16,7 +16,8 @@ export async function queryOllama(messages: any[], model: string = "llama3") {
       model: process.env.CHUCK_CODE_OLLAMA_MODEL || model,
       messages: ollamaMessages,
       stream: false,
-      temperature: 0.2 // Lower temperature for more reliable tool use
+      temperature: 0.2, // Lower temperature for more reliable tool use
+      options: { num_ctx: 2048 }
     }),
   });
 

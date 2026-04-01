@@ -111,10 +111,11 @@ export async function sideQuery(opts: SideQueryOptions): Promise<any> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: process.env.CHUCK_CODE_OLLAMA_MODEL || 'llama3',
+      model: process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3',
       messages: ollamaMessages,
       max_tokens,
       temperature: temperature ?? 0.7,
+      options: { num_ctx: 2048 }
     }),
     signal,
   })

@@ -6,15 +6,19 @@ export class CriticAgent {
     const prompt = `
     As a Senior Security Reviewer, evaluate the last action:
     Task: ${step.description}
+    Status: ${step.status}
     Result: ${JSON.stringify(step.result)}
     
     Current Findings: ${JSON.stringify(state.findings)}
 
-    Is this a False Positive? Does this output suggest a new attack vector?
+    If the status is 'failed', analyze the error. Can the step be corrected (e.g., fixing syntax, changing ports, or using an alternative tool)?
+    Is this a False Positive? Does this output suggest a new attack vector or a need to pivot?
+
     Respond strictly in JSON:
     {
       "action": "CONTINUE|RETRY|ABORT",
       "reasoning": "...",
+      "correctedStep": { "tool": "tool_name", "input": "new_input_args" },
       "findings": [{ "title": "...", "severity": "...", "exploitable": true }],
       "newSteps": [{ "description": "...", "toolsRequired": [] }],
       "confidence": 0.9

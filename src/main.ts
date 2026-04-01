@@ -6,6 +6,7 @@ import { ExecutionLoop } from './core/ExecutionLoop';
 import { PlannerAgent } from './agents/PlannerAgent';
 import { ToolRouter } from './agents/ToolRouter';
 import { CriticAgent } from './agents/CriticAgent';
+import './core/ToolRegistry'; // Ensure tools are initialized
 
 const program = new Command();
 

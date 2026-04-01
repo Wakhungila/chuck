@@ -1,10 +1,14 @@
+export type SystemStage = 'PLANNER' | 'RECON' | 'ANALYZER' | 'EXPLOIT' | 'REPORT' | 'FUZZER';
+
 export interface PlanStep {
-  id: string;
-  order: number;
-  description: string;
-  toolsRequired: string[];
-  expectedOutput: string;
+  id: string; // Map from 'step'
+  order: number; // Map from 'step'
+  agent: 'recon' | 'scanner' | 'fuzz' | 'analysis' | 'report';
+  tool: string;
+  input: string;
+  description: string; // Map from 'goal'
   status: 'pending' | 'running' | 'completed' | 'failed';
+  expectedOutput?: string;
   result?: any;
 }
 
@@ -31,4 +35,11 @@ export interface SessionState {
   plan: PlanStep[];
   findings: Finding[];
   iteration: number;
+  targetsSeen: Set<string>;
+  memoryContext?: string;
+  kbContext?: string;
+  authContext?: {
+    isAuthenticated: boolean;
+    sessionCookie?: string;
+  };
 }

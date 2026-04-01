@@ -13,7 +13,17 @@ async function getRelevantObservations(prompt: string): Promise<string> {
   try {
     const files = await fs.readdir(obsDir);
     if (files.length === 0) return "";
+  } catch (error) {
+    // Silently handle missing directory on first run
+    if ((error as any).code === 'ENOENT') {
+      return "";
+    }
+    console.error('Error reading observations:', error);
+    return "";
+  }
 
+  try {
+    const files = await fs.readdir(obsDir);
     // EXTRACT KEYWORDS (better tokenization)
     const keywords = prompt
       .toLowerCase()
@@ -67,7 +77,46 @@ async function getRelevantObservations(prompt: string): Promise<string> {
   }
 }
 
-export async function queryOllama(prompt: string, model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'mistral:7b-instruct-q4_0'): Promise<string> {
+/**
+ * Internal helper to pull a model from Ollama.
+ */
+async function pullModel(model: string, host: string): Promise<void> {
+  const hostClean = host.replace(/\/$/, '');
+  const endpoint = `${hostClean}/api/pull`;
+  console.log(`[*] Model "${model}" not found. Attempting to pull from Ollama library...`);
+  try {
+    await axios.post(endpoint, { name: model, stream: false }, { timeout: 0 });
+    console.log(`[+] Successfully pulled ${model}`);
+  } catch (error) {
+    throw new Error(`Failed to pull model "${model}": ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/**
+ * Verifies if the Ollama service is reachable and pulls the model if missing.
+ */
+export async function verifyOllamaService(model?: string): Promise<void> {
+  const host = process.env.OLLAMA_HOST || 'http://localhost:11434';
+  const hostClean = host.replace(/\/$/, '');
+  try {
+    const tagsRes = await axios.get(`${hostClean}/api/tags`, { timeout: 5000 });
+    if (model) {
+      const models = tagsRes.data.models || [];
+      // Exact match or prefix match (to handle :latest tags)
+      const exists = models.some((m: any) => m.name === model || m.name === `${model}:latest`);
+      if (!exists) {
+        await pullModel(model, hostClean);
+      }
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(`Ollama error: ${error.message}`);
+    }
+    throw new Error(`Ollama service is not reachable at ${host}. Please ensure Ollama is running.`);
+  }
+}
+
+export async function queryOllama(prompt: string, model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3'): Promise<string> {
   const host = process.env.OLLAMA_HOST || 'http://localhost:11434';
   
   // Ensure we append the correct path if only the base URL is provided
@@ -106,7 +155,11 @@ export async function queryOllama(prompt: string, model: string = process.env.CH
         await new Promise(r => setTimeout(r, delay));
         continue;
       }
-      throw new Error(`Ollama failed after 3 attempts: ${error instanceof Error ? error.message : String(error)}`);
+      let msg = error instanceof Error ? error.message : String(error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        msg = `Model "${model}" not found. Please run 'ollama pull ${model}' in your terminal.`;
+      }
+      throw new Error(`Ollama failed after 3 attempts: ${msg}`);
     }
   }
   return ""; // Fallback

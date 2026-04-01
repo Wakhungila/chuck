@@ -18,7 +18,7 @@ import { getOrganizationUUID } from '../services/oauth/client.js';
 import { AppStateProvider } from '../state/AppState.js';
 import type { Message, SystemMessage } from '../types/message.js';
 import type { PermissionMode } from '../types/permissions.js';
-import { checkAndRefreshOAuthTokenIfNeeded, getClaudeAIOAuthTokens } from './auth.js';
+import { checkAndRefreshOAuthTokenIfNeeded, getChuckAIOAuthTokens } from './auth.js';
 import { checkGithubAppInstalled } from './background/remote/preconditions.js';
 import { deserializeMessages, type TeleportRemoteResponse } from './conversationRecovery.js';
 import { getCwd } from './cwd.js';
@@ -78,13 +78,13 @@ You should keep it short and simple, ideally no more than 6 words. Avoid using j
 Use sentence case for the title (capitalize only the first word and proper nouns), not Title Case.
 
 The branch name should be clear, concise, and accurately reflect the content of the coding task.
-You should keep it short and simple, ideally no more than 4 words. The branch should always start with "claude/" and should be all lower case, with words separated by dashes.
+You should keep it short and simple, ideally no more than 4 words. The branch should always start with "chuck/" and should be all lower case, with words separated by dashes.
 
 Return a JSON object with "title" and "branch" fields.
 
-Example 1: {"title": "Fix login button not working on mobile", "branch": "claude/fix-mobile-login-button"}
-Example 2: {"title": "Update README with installation instructions", "branch": "claude/update-readme"}
-Example 3: {"title": "Improve performance of data processing script", "branch": "claude/improve-data-processing"}
+Example 1: {"title": "Fix login button not working on mobile", "branch": "chuck/fix-mobile-login-button"}
+Example 2: {"title": "Update README with installation instructions", "branch": "chuck/update-readme"}
+Example 3: {"title": "Improve performance of data processing script", "branch": "chuck/improve-data-processing"}
 
 Here is the session description:
 <description>{description}</description>
@@ -95,13 +95,13 @@ type TitleAndBranch = {
 };
 
 /**
- * Generates a title and branch name for a coding session using Claude Haiku
+ * Generates a title and branch name for a coding session using Chuck Haiku
  * @param description The description/prompt for the session
  * @returns Promise<TitleAndBranch> The generated title and branch name
  */
 async function generateTitleAndBranch(description: string, signal: AbortSignal): Promise<TitleAndBranch> {
   const fallbackTitle = truncateToWidth(description, 75);
-  const fallbackBranch = 'claude/task';
+  const fallbackBranch = 'chuck/task';
   try {
     const userPrompt = SESSION_TITLE_AND_BRANCH_PROMPT.replace('{description}', description);
     const response = await queryHaiku({
@@ -433,12 +433,12 @@ export async function teleportResumeCodeSession(sessionId: string, onProgress?: 
   }
   logForDebugging(`Resuming code session ID: ${sessionId}`);
   try {
-    const accessToken = getClaudeAIOAuthTokens()?.accessToken;
+    const accessToken = getChuckAIOAuthTokens()?.accessToken;
     if (!accessToken) {
       logEvent('tengu_teleport_resume_error', {
         error_type: 'no_access_token' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
       });
-      throw new Error('Claude Code web sessions require authentication with a Claude.ai account. API key authentication is not sufficient. Please run /login to authenticate, or check your authentication status with /status.');
+      throw new Error('Chuck Code web sessions require authentication. Please run /login to authenticate, or check your authentication status with /status.');
     }
 
     // Get organization UUID
@@ -466,7 +466,7 @@ export async function teleportResumeCodeSession(sessionId: string, onProgress?: 
           });
           // Include host for GHE users so they know which instance the repo is on
           const notInRepoDisplay = repoValidation.sessionHost && repoValidation.sessionHost.toLowerCase() !== 'github.com' ? `${repoValidation.sessionHost}/${repoValidation.sessionRepo}` : repoValidation.sessionRepo;
-          throw new TeleportOperationError(`You must run claude --teleport ${sessionId} from a checkout of ${notInRepoDisplay}.`, chalk.red(`You must run claude --teleport ${sessionId} from a checkout of ${chalk.bold(notInRepoDisplay)}.\n`));
+          throw new TeleportOperationError(`You must run chuck-ai --teleport ${sessionId} from a checkout of ${notInRepoDisplay}.`, chalk.red(`You must run chuck-ai --teleport ${sessionId} from a checkout of ${chalk.bold(notInRepoDisplay)}.\n`));
         }
       case 'mismatch':
         {
@@ -478,7 +478,7 @@ export async function teleportResumeCodeSession(sessionId: string, onProgress?: 
           const hostsDiffer = repoValidation.sessionHost && repoValidation.currentHost && repoValidation.sessionHost.replace(/:\d+$/, '').toLowerCase() !== repoValidation.currentHost.replace(/:\d+$/, '').toLowerCase();
           const sessionDisplay = hostsDiffer ? `${repoValidation.sessionHost}/${repoValidation.sessionRepo}` : repoValidation.sessionRepo;
           const currentDisplay = hostsDiffer ? `${repoValidation.currentHost}/${repoValidation.currentRepo}` : repoValidation.currentRepo;
-          throw new TeleportOperationError(`You must run claude --teleport ${sessionId} from a checkout of ${sessionDisplay}.\nThis repo is ${currentDisplay}.`, chalk.red(`You must run claude --teleport ${sessionId} from a checkout of ${chalk.bold(sessionDisplay)}.\nThis repo is ${chalk.bold(currentDisplay)}.\n`));
+          throw new TeleportOperationError(`You must run chuck-ai --teleport ${sessionId} from a checkout of ${sessionDisplay}.\nThis repo is ${currentDisplay}.`, chalk.red(`You must run chuck-ai --teleport ${sessionId} from a checkout of ${chalk.bold(sessionDisplay)}.\nThis repo is ${chalk.bold(currentDisplay)}.\n`));
         }
       case 'error':
         throw new TeleportOperationError(repoValidation.errorMessage || 'Failed to validate session repository', chalk.red(`Error: ${repoValidation.errorMessage || 'Failed to validate session repository'}\n`));
@@ -533,7 +533,7 @@ async function handleTeleportPrerequisites(root: Root, errorsToIgnore?: Set<Tele
 }
 
 /**
- * Creates a remote Claude.ai session with error handling and UI feedback.
+ * Creates a remote Chuck.ai session with error handling and UI feedback.
  * Shows prerequisite error dialog in the existing root if needed.
  * @param root The existing Ink root to render dialogs into
  * @param description The description/prompt for the new session (null for no initial prompt)
@@ -608,7 +608,7 @@ export async function teleportFromSessionsAPI(sessionId: string, orgUUID: string
       logEvent('tengu_teleport_error_session_not_found_404', {
         sessionId: sessionId as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
       });
-      throw new TeleportOperationError(`${sessionId} not found.`, `${sessionId} not found.\n${chalk.dim('Run /status in Claude Code to check your account.')}`);
+      throw new TeleportOperationError(`${sessionId} not found.`, `${sessionId} not found.\n${chalk.dim('Run /status in Chuck Code to check your account.')}`);
     }
     logError(err);
     throw new Error(`Failed to fetch session from Sessions API: ${err.message}`);
@@ -643,8 +643,8 @@ export async function pollRemoteSessionEvents(sessionId: string, afterId: string
   }
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
-    'x-organization-uuid': orgUUID
+    'chuck-beta': 'ccr-byoc-2025-07-29',
+    'x-chuck-org-uuid': orgUUID
   };
   const eventsUrl = `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}/events`;
   type EventsResponse = {
@@ -715,7 +715,7 @@ export async function pollRemoteSessionEvents(sessionId: string, afterId: string
 }
 
 /**
- * Creates a remote Claude.ai session using the Sessions API.
+ * Creates a remote Chuck.ai session using the Sessions API.
  *
  * Two source modes:
  * - GitHub (default): backend clones from the repo's origin URL. Requires a
@@ -800,7 +800,7 @@ export async function teleportToRemote(options: {
   try {
     // Check authentication
     await checkAndRefreshOAuthTokenIfNeeded();
-    const accessToken = getClaudeAIOAuthTokens()?.accessToken;
+    const accessToken = getChuckAIOAuthTokens()?.accessToken;
     if (!accessToken) {
       logError(new Error('No access token found for remote session creation'));
       return null;
@@ -822,8 +822,8 @@ export async function teleportToRemote(options: {
       const url = `${getOauthConfig().BASE_API_URL}/v1/sessions`;
       const headers = {
         ...getOAuthHeaders(accessToken),
-        'anthropic-beta': 'ccr-byoc-2025-07-29',
-        'x-organization-uuid': orgUUID
+        'chuck-beta': 'ccr-byoc-2025-07-29',
+        'x-chuck-org-uuid': orgUUID
       };
       const envVars = {
         CLAUDE_CODE_OAUTH_TOKEN: accessToken,
@@ -1059,21 +1059,21 @@ export async function teleportToRemote(options: {
     }
     logForDebugging(`Available environments: ${environments.map(e => `${e.environment_id} (${e.name}, ${e.kind})`).join(', ')}`);
 
-    // Select environment based on settings, then anthropic_cloud preference, then first available.
-    // Prefer anthropic_cloud environments over byoc: anthropic_cloud environments (e.g. "Default")
+    // Select environment based on settings, then chuck_cloud preference, then first available.
+    // Prefer chuck_cloud environments over byoc: chuck_cloud environments (e.g. "Default")
     // are the standard compute environments with full repo access, whereas byoc environments
     // (e.g. "monorepo") are user-owned compute that may not support the current repository.
     const settings = getSettings_DEPRECATED();
     const defaultEnvironmentId = options.useDefaultEnvironment ? undefined : settings?.remote?.defaultEnvironmentId;
-    let cloudEnv = environments.find(env => env.kind === 'anthropic_cloud');
+    let cloudEnv = environments.find(env => env.kind === 'chuck_cloud');
     // When the caller opts out of their configured default, do not fall
     // through to a BYOC env that may not support the current repo or the
     // requested permission mode. Retry once for eventual consistency,
     // then fail loudly.
     if (options.useDefaultEnvironment && !cloudEnv) {
-      logForDebugging(`No anthropic_cloud in env list (${environments.length} envs); retrying fetchEnvironments`);
+      logForDebugging(`No chuck_cloud in env list (${environments.length} envs); retrying fetchEnvironments`);
       const retried = await fetchEnvironments();
-      cloudEnv = retried?.find(env => env.kind === 'anthropic_cloud');
+      cloudEnv = retried?.find(env => env.kind === 'chuck_cloud');
       if (!cloudEnv) {
         logError(new Error(`No anthropic_cloud environment available after retry (got: ${(retried ?? environments).map(e => `${e.name} (${e.kind})`).join(', ')}). Silent byoc fallthrough would launch into a dead env — fail fast instead.`));
         return null;
@@ -1096,8 +1096,8 @@ export async function teleportToRemote(options: {
     const url = `${getOauthConfig().BASE_API_URL}/v1/sessions`;
     const headers = {
       ...getOAuthHeaders(accessToken),
-      'anthropic-beta': 'ccr-byoc-2025-07-29',
-      'x-organization-uuid': orgUUID
+      'chuck-beta': 'ccr-byoc-2025-07-29',
+      'x-chuck-org-uuid': orgUUID
     };
     const sessionContext = {
       sources: gitSource ? [gitSource] : [],
@@ -1198,14 +1198,14 @@ export async function teleportToRemote(options: {
  * reaper collects it.
  */
 export async function archiveRemoteSession(sessionId: string): Promise<void> {
-  const accessToken = getClaudeAIOAuthTokens()?.accessToken;
+  const accessToken = getChuckAIOAuthTokens()?.accessToken;
   if (!accessToken) return;
   const orgUUID = await getOrganizationUUID();
   if (!orgUUID) return;
   const headers = {
     ...getOAuthHeaders(accessToken),
-    'anthropic-beta': 'ccr-byoc-2025-07-29',
-    'x-organization-uuid': orgUUID
+      'chuck-beta': 'ccr-byoc-2025-07-29',
+      'x-chuck-org-uuid': orgUUID
   };
   const url = `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}/archive`;
   try {

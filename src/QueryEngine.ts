@@ -173,6 +173,30 @@ export type QueryEngineConfig = {
 }
 
 /**
+ * Tool Chain Reasoning: Predicts the next best sequence of tools based on findings.
+ */
+async function suggestNextTools(
+  findings: string,
+  model: string
+): Promise<string> {
+  const { queryOllama } = await import('./services/ollama.js');
+  const toolSuggestionPrompt = `
+Current security findings:
+${findings}
+
+Available tools: BashTool, FileReadTool, CVESearchTool, ExploitSearchTool, GTFOBinsCheckTool
+
+What should we do next? Respond strictly in JSON:
+{
+  "reasoning": "why this approach",
+  "nextTools": ["tool1", "tool2"],
+  "commands": { "tool1": "args" }
+}
+`;
+  return await queryOllama(toolSuggestionPrompt, model);
+}
+
+/**
  * QueryEngine owns the query lifecycle and session state for a conversation.
  * It extracts the core logic from ask() into a standalone class that can be
  * used by both the headless/SDK path and (in a future phase) the REPL.

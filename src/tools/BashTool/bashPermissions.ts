@@ -398,7 +398,8 @@ const SAFE_ENV_VARS = new Set([
   'PYTEST_DEBUG', // debug output
 
   // API keys and authentication
-  'ANTHROPIC_API_KEY', // API authentication
+  'ANTHROPIC_API_KEY', // Legacy API authentication
+  'CHUCK_API_KEY',     // Chuck API authentication
 
   // Locale and character encoding
   'LANG', // default locale
@@ -497,7 +498,7 @@ const ANT_ONLY_SAFE_ENV_VARS = new Set([
 
 /**
  * Strips full-line comments from a command.
- * This handles cases where Claude adds comments in bash commands, e.g.:
+ * This handles cases where Chuck adds comments in bash commands, e.g.:
  *   "# Check the logs directory\nls /home/user/logs"
  * Should be stripped to: "ls /home/user/logs"
  *

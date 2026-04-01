@@ -48,7 +48,7 @@ import { canUserConfigureAdvisor, getInitialAdvisorSetting, isAdvisorEnabled, is
 import { isAgentSwarmsEnabled } from './utils/agentSwarmsEnabled.js';
 import { count, uniq } from './utils/array.js';
 import { installAsciicastRecorder } from './utils/asciicast.js';
-import { getSubscriptionType, isClaudeAISubscriber, prefetchAwsCredentialsAndBedRockInfoIfSafe, prefetchGcpCredentialsIfSafe, validateForceLoginOrg } from './utils/auth.js';
+import { getSubscriptionType, isChuckAISubscriber, prefetchAwsCredentialsAndBedRockInfoIfSafe, prefetchGcpCredentialsIfSafe, validateForceLoginOrg } from './utils/auth.js';
 import { checkHasTrustDialogAccepted, getGlobalConfig, getRemoteControlAtStartup, isAutoUpdaterDisabled, saveGlobalConfig } from './utils/config.js';
 import { seedEarlyInput, stopCapturingEarlyInput } from './utils/earlyInput.js';
 import { getInitialEffortSetting, parseEffortValue } from './utils/effort.js';
@@ -825,7 +825,7 @@ export async function main() {
     if (process.env.CLAUDE_CODE_ENTRYPOINT === 'claude-desktop') return 'claude-desktop';
 
     // Check if session-ingress token is provided (indicates remote session)
-    const hasSessionIngressToken = process.env.CLAUDE_CODE_SESSION_ACCESS_TOKEN || process.env.CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR;
+    const hasSessionIngressToken = process.env.CHUCK_CODE_SESSION_ACCESS_TOKEN || process.env.CHUCK_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR;
     if (process.env.CLAUDE_CODE_ENTRYPOINT === 'remote' || hasSessionIngressToken) {
       return 'remote';
     }
@@ -990,7 +990,7 @@ async function run(): Promise<CommanderCommand> {
     return Number.isFinite(n) ? n : undefined;
   }).hideHelp()).option('--from-pr [value]', 'Resume a session linked to a PR by PR number/URL, or open interactive picker with optional search term', value => value || true).option('--no-session-persistence', 'Disable session persistence - sessions will not be saved to disk and cannot be resumed (only works with --print)').addOption(new Option('--resume-session-at <message id>', 'When resuming, only messages up to and including the assistant message with <message.id> (use with --resume in print mode)').argParser(String).hideHelp()).addOption(new Option('--rewind-files <user-message-id>', 'Restore files to state at the specified user message and exit (requires --resume)').hideHelp())
   // @[MODEL LAUNCH]: Update the example model ID in the --model help text.
-  .option('--model <model>', `Model for the current session. Provide an alias for the latest model (e.g. 'sonnet' or 'opus') or a model's full name (e.g. 'claude-sonnet-4-6').`).addOption(new Option('--effort <level>', `Effort level for the current session (low, medium, high, max)`).argParser((rawValue: string) => {
+  .option('--model <model>', `Model for the current session. Provide an alias for the latest model (e.g. 'sonnet' or 'opus') or a model's full name (e.g. 'chuck-sonnet-4-6').`).addOption(new Option('--effort <level>', `Effort level for the current session (low, medium, high, max)`).argParser((rawValue: string) => {
     const value = rawValue.toLowerCase();
     const allowed = ['low', 'medium', 'high', 'max'];
     if (!allowed.includes(value)) {
@@ -3310,7 +3310,7 @@ async function run(): Promise<CommanderCommand> {
       // getAccessToken closure for the token so reconnects get fresh tokens.
       const {
         checkAndRefreshOAuthTokenIfNeeded,
-        getClaudeAIOAuthTokens
+        getChuckAIOAuthTokens
       } = await import('./utils/auth.js');
       await checkAndRefreshOAuthTokenIfNeeded();
       let apiCreds;
@@ -3319,7 +3319,7 @@ async function run(): Promise<CommanderCommand> {
       } catch (e) {
         return await exitWithError(root, `Error: ${e instanceof Error ? e.message : 'Failed to authenticate'}`, () => gracefulShutdown(1));
       }
-      const getAccessToken = (): string => getClaudeAIOAuthTokens()?.accessToken ?? apiCreds.accessToken;
+      const getAccessToken = (): string => getChuckAIOAuthTokens()?.accessToken ?? apiCreds.accessToken;
 
       // Brief mode activation: setKairosActive(true) satisfies BOTH opt-in
       // and entitlement for isBriefEnabled() (BriefTool.ts:124-132).
@@ -4264,7 +4264,7 @@ async function run(): Promise<CommanderCommand> {
   // END ANT-ONLY
 
   // Setup token command
-  program.command('setup-token').description('Set up a long-lived authentication token (requires Claude subscription)').action(async () => {
+  program.command('setup-token').description('Set up a long-lived authentication token (requires Chuck subscription)').action(async () => {
     const [{
       setupTokenHandler
     }, {
@@ -4560,7 +4560,7 @@ async function logTenguInit({
 }): Promise<void> {
   try {
     logEvent('tengu_init', {
-      entrypoint: 'claude' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+      entrypoint: 'chuck' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
       hasInitialPrompt,
       hasStdin,
       verbose,

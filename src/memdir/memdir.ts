@@ -505,3 +505,32 @@ export async function loadMemoryPrompt(): Promise<string | null> {
   }
   return null
 }
+
+/**
+ * Persists structured security findings to long-term memory.
+ */
+export async function saveSecurityFinding(
+  finding: string,
+  category: 'exploit' | 'cve' | 'payload' | 'pattern',
+  confidence: 'high' | 'medium' | 'low'
+) {
+  const fs = getFsImplementation();
+  const timestamp = new Date().toISOString();
+  const filename = `${category}_${timestamp.replace(/[:.]/g, '-')}.md`;
+  const memoryDir = getAutoMemPath();
+  
+  const content = `# ${category.toUpperCase()} Finding
+**Date:** ${timestamp}
+**Confidence:** ${confidence}
+
+## Discovery
+${finding}
+
+## Pattern Recognition
+- Applicable to: [similar systems]
+- Remediation: [quick fix]
+---
+`;
+
+  await fs.writeFile(join(memoryDir, filename), content);
+}

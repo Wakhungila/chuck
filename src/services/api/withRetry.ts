@@ -16,9 +16,9 @@ import {
   clearApiKeyHelperCache,
   clearAwsCredentialsCache,
   clearGcpCredentialsCache,
-  getClaudeAIOAuthTokens,
+  getChuckAIOAuthTokens,
   handleOAuth401Error,
-  isClaudeAISubscriber,
+  isChuckAISubscriber,
   isEnterpriseSubscriber,
 } from '../../utils/auth.js'
 import { isEnvTruthy } from '../../utils/envUtils.js'
@@ -99,7 +99,7 @@ const HEARTBEAT_INTERVAL_MS = 30_000
 
 function isPersistentRetryEnabled(): boolean {
   return feature('UNATTENDED_RETRY')
-    ? isEnvTruthy(process.env.CLAUDE_CODE_UNATTENDED_RETRY)
+    ? isEnvTruthy(process.env.CHUCK_CODE_UNATTENDED_RETRY)
     : false
 }
 
@@ -242,7 +242,7 @@ export async function* withRetry<T>(
           (lastError instanceof APIError && lastError.status === 401) ||
           isOAuthTokenRevokedError(lastError)
         ) {
-          const failedAccessToken = getClaudeAIOAuthTokens()?.accessToken
+          const failedAccessToken = getChuckAIOAuthTokens()?.accessToken
           if (failedAccessToken) {
             await handleOAuth401Error(failedAccessToken)
           }
@@ -273,7 +273,7 @@ export async function* withRetry<T>(
         // If the 429 is specifically because extra usage (overage) is not
         // available, permanently disable fast mode with a specific message.
         const overageReason = error.headers?.get(
-          'anthropic-ratelimit-unified-overage-disabled-reason',
+          'chuck-ratelimit-overage-disabled-reason',
         )
         if (overageReason !== null && overageReason !== undefined) {
           handleFastModeOverageRejection(overageReason)
@@ -787,8 +787,8 @@ function shouldRetry(error: APIError): boolean {
 }
 
 export function getDefaultMaxRetries(): number {
-  if (process.env.CLAUDE_CODE_MAX_RETRIES) {
-    return parseInt(process.env.CLAUDE_CODE_MAX_RETRIES, 10)
+  if (process.env.CHUCK_CODE_MAX_RETRIES) {
+    return parseInt(process.env.CHUCK_CODE_MAX_RETRIES, 10)
   }
   return DEFAULT_MAX_RETRIES
 }
@@ -812,7 +812,7 @@ function getRetryAfterMs(error: APIError): number | null {
 }
 
 function getRateLimitResetDelayMs(error: APIError): number | null {
-  const resetHeader = error.headers?.get?.('anthropic-ratelimit-unified-reset')
+  const resetHeader = error.headers?.get?.('chuck-ratelimit-reset')
   if (!resetHeader) return null
   const resetUnixSec = Number(resetHeader)
   if (!Number.isFinite(resetUnixSec)) return null

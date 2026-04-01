@@ -22,7 +22,7 @@ import type { Stream } from '@anthropic-ai/sdk/streaming.mjs'
 import { randomUUID } from 'crypto'
 import {
   getAPIProvider,
-  isFirstPartyAnthropicBaseUrl,
+  isFirstPartyChuckBaseUrl,
 } from 'src/utils/model/providers.js'
 import {
   getAttributionHeader,
@@ -228,7 +228,7 @@ import {
 import { getInitializationStatus } from '../lsp/manager.js'
 import { isToolFromMcpServer } from '../mcp/utils.js'
 import { withStreamingVCR, withVCR } from '../vcr.js'
-import { CLIENT_REQUEST_ID_HEADER, getAnthropicClient } from './client.js'
+import { CLIENT_REQUEST_ID_HEADER, getChuckClient } from './client.js'
 import {
   API_ERROR_MESSAGE_PREFIX,
   CUSTOM_OFF_SWITCH_MESSAGE,
@@ -271,7 +271,7 @@ type JsonArray = JsonValue[]
  */
 export function getExtraBodyParams(betaHeaders?: string[]): JsonObject {
   // Parse user's extra body parameters first
-  const extraBodyStr = process.env.CLAUDE_CODE_EXTRA_BODY
+  const extraBodyStr = process.env.CHUCK_CODE_EXTRA_BODY
   let result: JsonObject = {}
 
   if (extraBodyStr) {
@@ -286,7 +286,7 @@ export function getExtraBodyParams(betaHeaders?: string[]): JsonObject {
         result = { ...(parsed as JsonObject) }
       } else {
         logForDebugging(
-          `CLAUDE_CODE_EXTRA_BODY env var must be a JSON object, but was given ${extraBodyStr}`,
+          `CHUCK_CODE_EXTRA_BODY env var must be a JSON object, but was given ${extraBodyStr}`,
           { level: 'error' },
         )
       }
@@ -301,7 +301,7 @@ export function getExtraBodyParams(betaHeaders?: string[]): JsonObject {
   // Anti-distillation: send fake_tools opt-in for 1P CLI only
   if (
     feature('ANTI_DISTILLATION_CC')
-      ? process.env.CLAUDE_CODE_ENTRYPOINT === 'cli' &&
+      ? process.env.CHUCK_CODE_ENTRYPOINT === 'cli' &&
         shouldIncludeFirstPartyOnlyBetas() &&
         getFeatureValue_CACHED_MAY_BE_STALE(
           'tengu_anti_distill_fake_tool_injection',
@@ -314,16 +314,16 @@ export function getExtraBodyParams(betaHeaders?: string[]): JsonObject {
 
   // Handle beta headers if provided
   if (betaHeaders && betaHeaders.length > 0) {
-    if (result.anthropic_beta && Array.isArray(result.anthropic_beta)) {
+    if (result.chuck_beta && Array.isArray(result.chuck_beta)) {
       // Add to existing array, avoiding duplicates
-      const existingHeaders = result.anthropic_beta as string[]
+      const existingHeaders = result.chuck_beta as string[]
       const newHeaders = betaHeaders.filter(
         header => !existingHeaders.includes(header),
       )
-      result.anthropic_beta = [...existingHeaders, ...newHeaders]
+      result.chuck_beta = [...existingHeaders, ...newHeaders]
     } else {
       // Create new array with the beta headers
-      result.anthropic_beta = betaHeaders
+      result.chuck_beta = betaHeaders
     }
   }
 
@@ -455,10 +455,10 @@ function configureEffortParams(
     outputConfig.effort = effortValue
     betas.push(EFFORT_BETA_HEADER)
   } else if (process.env.USER_TYPE === 'ant') {
-    // Numeric effort override - ant-only (uses anthropic_internal)
+    // Numeric effort override - ant-only (uses chuck_internal)
     const existingInternal =
-      (extraBodyParams.anthropic_internal as Record<string, unknown>) || {}
-    extraBodyParams.anthropic_internal = {
+      (extraBodyParams.chuck_internal as Record<string, unknown>) || {}
+    extraBodyParams.chuck_internal = {
       ...existingInternal,
       effort_override: effortValue,
     }
@@ -503,14 +503,14 @@ export function configureTaskBudgetParams(
 export function getAPIMetadata() {
   // https://docs.google.com/document/d/1dURO9ycXXQCBS0V4Vhl4poDBRgkelFc5t2BNPoEgH5Q/edit?tab=t.0#heading=h.5g7nec5b09w5
   let extra: JsonObject = {}
-  const extraStr = process.env.CLAUDE_CODE_EXTRA_METADATA
+  const extraStr = process.env.CHUCK_CODE_EXTRA_METADATA
   if (extraStr) {
     const parsed = safeParseJSON(extraStr, false)
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       extra = parsed as JsonObject
     } else {
       logForDebugging(
-        `CLAUDE_CODE_EXTRA_METADATA env var must be a JSON object, but was given ${extraStr}`,
+        `CHUCK_CODE_EXTRA_METADATA env var must be a JSON object, but was given ${extraStr}`,
         { level: 'error' },
       )
     }
@@ -842,7 +842,7 @@ export async function* executeNonStreamingRequest(
   const fallbackTimeoutMs = getNonstreamingFallbackTimeoutMs()
   const generator = withRetry(
     () =>
-      getAnthropicClient({
+      getChuckClient({
         maxRetries: 0,
         model: clientOptions.model,
         fetchOverride: clientOptions.fetchOverride,
@@ -1875,7 +1875,7 @@ async function* queryModel(
       process.env.CLAUDE_ENABLE_STREAM_WATCHDOG,
     )
     const STREAM_IDLE_TIMEOUT_MS =
-      parseInt(process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS || '', 10) || 90_000
+      parseInt(process.env.CHUCK_STREAM_IDLE_TIMEOUT_MS || '', 10) || 90_000
     const STREAM_IDLE_WARNING_MS = STREAM_IDLE_TIMEOUT_MS / 2
     let streamIdleAborted = false
     // performance.now() snapshot when watchdog fires, for measuring abort propagation delay
@@ -2268,9 +2268,9 @@ async function* queryModel(
                 max_tokens: maxOutputTokens,
               })
               yield createAssistantAPIErrorMessage({
-                content: `${API_ERROR_MESSAGE_PREFIX}: Claude's response exceeded the ${
+                content: `${API_ERROR_MESSAGE_PREFIX}: Chuck's response exceeded the ${
                   maxOutputTokens
-                } output token maximum. To configure this behavior, set the CLAUDE_CODE_MAX_OUTPUT_TOKENS environment variable.`,
+                } output token maximum. To configure this behavior, set the CHUCK_CODE_MAX_OUTPUT_TOKENS environment variable.`,
                 apiError: 'max_output_tokens',
                 error: 'max_output_tokens',
               })
@@ -2467,7 +2467,7 @@ async function* queryModel(
       // starts a tool, then the non-streaming retry produces the same tool_use
       // and runs it again. See inc-4258.
       const disableFallback =
-        isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK) ||
+        isEnvTruthy(process.env.CHUCK_CODE_DISABLE_NONSTREAMING_FALLBACK) ||
         getFeatureValue_CACHED_MAY_BE_STALE(
           'tengu_disable_streaming_to_non_streaming_fallback',
           false,
@@ -3410,8 +3410,8 @@ export function getMaxOutputTokensForModel(model: string): number {
     : maxOutputTokens.default
 
   const result = validateBoundedIntEnvVar(
-    'CLAUDE_CODE_MAX_OUTPUT_TOKENS',
-    process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS,
+    'CHUCK_CODE_MAX_OUTPUT_TOKENS',
+    process.env.CHUCK_CODE_MAX_OUTPUT_TOKENS,
     defaultTokens,
     maxOutputTokens.upperLimit,
   )

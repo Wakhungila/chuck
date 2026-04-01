@@ -33,7 +33,7 @@ async function getRelevantObservations(prompt: string): Promise<string> {
   }
 }
 
-export async function queryOllama(prompt: string, model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'phi3'): Promise<string> {
+export async function queryOllama(prompt: string, model: string = process.env.CHUCK_CODE_OLLAMA_MODEL || 'mistral:7b-instruct-q4_0'): Promise<string> {
   const host = process.env.OLLAMA_HOST || 'http://localhost:11434';
   
   // Ensure we append the correct path if only the base URL is provided
@@ -52,8 +52,12 @@ export async function queryOllama(prompt: string, model: string = process.env.CH
       prompt: enrichedPrompt,
       stream: false,
       options: {
-        temperature: 0.2,
-        num_ctx: 2048
+        temperature: 0.3,
+        top_k: 40,
+        top_p: 0.9,
+        num_ctx: 1024,
+        num_predict: 512,
+        num_thread: 2
       }
     });
 

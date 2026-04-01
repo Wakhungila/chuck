@@ -15,10 +15,10 @@ import type {
   UserMessage,
 } from 'src/types/message.js'
 import {
-  getAnthropicApiKeyWithSource,
-  getClaudeAIOAuthTokens,
+  getChuckApiKeyWithSource,
+  getChuckAIOAuthTokens,
   getOauthAccountInfo,
-  isClaudeAISubscriber,
+  isChuckAISubscriber,
 } from 'src/utils/auth.js'
 import {
   createAssistantAPIErrorMessage,
@@ -156,9 +156,9 @@ export const INVALID_API_KEY_ERROR_MESSAGE = 'Not logged in · Please run /login
 export const INVALID_API_KEY_ERROR_MESSAGE_EXTERNAL =
   'Invalid API key · Fix external API key'
 export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY_WITH_OAUTH =
-  'Your ANTHROPIC_API_KEY belongs to a disabled organization · Unset the environment variable to use your subscription instead'
+  'Your CHUCK_API_KEY belongs to a disabled organization · Unset the environment variable to use your subscription instead'
 export const ORG_DISABLED_ERROR_MESSAGE_ENV_KEY =
-  'Your ANTHROPIC_API_KEY belongs to a disabled organization · Update or unset the environment variable'
+  'Your CHUCK_API_KEY belongs to a disabled organization · Update or unset the environment variable'
 export const TOKEN_REVOKED_ERROR_MESSAGE =
   'OAuth token revoked · Please run /login'
 export const CCR_AUTH_ERROR_MESSAGE =
@@ -195,17 +195,17 @@ export function getRequestTooLargeErrorMessage(): string {
     : `Request too large (${limits}). Double press esc to go back and try with a smaller file.`
 }
 export const OAUTH_ORG_NOT_ALLOWED_ERROR_MESSAGE =
-  'Your account does not have access to Claude Code. Please run /login.'
+  'Your account does not have access to Chuck Code. Please run /login.'
 
 export function getTokenRevokedErrorMessage(): string {
   return getIsNonInteractiveSession()
-    ? 'Your account does not have access to Claude. Please login again or contact your administrator.'
+    ? 'Your account does not have access to Chuck. Please login again or contact your administrator.'
     : TOKEN_REVOKED_ERROR_MESSAGE
 }
 
 export function getOauthOrgNotAllowedErrorMessage(): string {
   return getIsNonInteractiveSession()
-    ? 'Your organization does not have access to Claude. Please login again or contact your administrator.'
+    ? 'Your organization does not have access to Chuck. Please login again or contact your administrator.'
     : OAUTH_ORG_NOT_ALLOWED_ERROR_MESSAGE
 }
 
@@ -215,7 +215,7 @@ export function getOauthOrgNotAllowedErrorMessage(): string {
  * not via /login. Transient auth errors should suggest retrying, not logging in.
  */
 function isCCRMode(): boolean {
-  return isEnvTruthy(process.env.CLAUDE_CODE_REMOTE)
+  return isEnvTruthy(process.env.CHUCK_CODE_REMOTE)
 }
 
 // Temp helper to log tool_use/tool_result mismatch errors
@@ -469,11 +469,11 @@ export function getAssistantMessageFromError(
   ) {
     // Check if this is the new API with multiple rate limit headers
     const rateLimitType = error.headers?.get?.(
-      'anthropic-ratelimit-unified-representative-claim',
+      'chuck-ratelimit-representative-claim',
     ) as 'five_hour' | 'seven_day' | 'seven_day_opus' | null
 
     const overageStatus = error.headers?.get?.(
-      'anthropic-ratelimit-unified-overage-status',
+      'chuck-ratelimit-overage-status',
     ) as 'allowed' | 'allowed_warning' | 'rejected' | null
 
     // If we have the new headers, use the new message generation
@@ -487,7 +487,7 @@ export function getAssistantMessageFromError(
 
       // Extract rate limit information from headers
       const resetHeader = error.headers?.get?.(
-        'anthropic-ratelimit-unified-reset',
+        'chuck-ratelimit-reset',
       )
       if (resetHeader) {
         limits.resetsAt = Number(resetHeader)
@@ -502,14 +502,14 @@ export function getAssistantMessageFromError(
       }
 
       const overageResetHeader = error.headers?.get?.(
-        'anthropic-ratelimit-unified-overage-reset',
+        'chuck-ratelimit-overage-reset',
       )
       if (overageResetHeader) {
         limits.overageResetsAt = Number(overageResetHeader)
       }
 
       const overageDisabledReason = error.headers?.get?.(
-        'anthropic-ratelimit-unified-overage-disabled-reason',
+        'chuck-ratelimit-overage-disabled-reason',
       ) as OverageDisabledReason | null
       if (overageDisabledReason) {
         limits.overageDisabledReason = overageDisabledReason
@@ -552,7 +552,7 @@ export function getAssistantMessageFromError(
     const innerMessage = stripped.match(/"message"\s*:\s*"([^"]*)"/)?.[1]
     const detail = innerMessage || stripped
     return createAssistantAPIErrorMessage({
-      content: `${API_ERROR_MESSAGE_PREFIX}: Request rejected (429) · ${detail || 'this may be a temporary capacity issue — check status.anthropic.com'}`,
+      content: `${API_ERROR_MESSAGE_PREFIX}: Request rejected (429) · ${detail || 'this may be a temporary capacity issue — check status.chuck.ai'}`,
       error: 'rate_limit',
     })
   }
@@ -742,7 +742,7 @@ export function getAssistantMessageFromError(
   ) {
     return createAssistantAPIErrorMessage({
       content:
-        'Claude Opus is not available with the Claude Pro plan. If you have updated your subscription plan recently, run /logout and /login for the plan to take effect.',
+        'Opus is not available with your current plan. If you have updated your subscription plan recently, run /logout and /login for the plan to take effect.',
       error: 'invalid_request',
     })
   }
@@ -758,7 +758,7 @@ export function getAssistantMessageFromError(
   ) {
     // Get organization ID from config - only use OAuth account data when actively using OAuth
     const orgId = getOauthAccountInfo()?.organizationUuid
-    const baseMsg = `[ANT-ONLY] Your org isn't gated into the \`${model}\` model. Either run \`claude\` with \`ANTHROPIC_MODEL=${getDefaultMainLoopModelSetting()}\``
+    const baseMsg = `[ANT-ONLY] Your org isn't gated into the \`${model}\` model. Either run \`chuck-ai\` with \`CHUCK_MODEL=${getDefaultMainLoopModelSetting()}\``
     const msg = orgId
       ? `${baseMsg} or share your orgId (${orgId}) in ${MACRO.FEEDBACK_CHANNEL} for help getting access.`
       : `${baseMsg} or reach out in ${MACRO.FEEDBACK_CHANNEL} for help getting access.`
@@ -793,8 +793,8 @@ export function getAssistantMessageFromError(
     // the env var. The three guards ensure we only blame the env var when it's
     // actually set and actually on the wire.
     if (
-      source === 'ANTHROPIC_API_KEY' &&
-      process.env.ANTHROPIC_API_KEY &&
+      source === 'CHUCK_API_KEY' &&
+      process.env.CHUCK_API_KEY &&
       !isClaudeAISubscriber()
     ) {
       const hasStoredOAuth = getClaudeAIOAuthTokens()?.accessToken != null
@@ -1192,12 +1192,12 @@ export function getErrorMessageIfRefusal(
   logEvent('tengu_refusal_api_response', {})
 
   const baseMessage = getIsNonInteractiveSession()
-    ? `${API_ERROR_MESSAGE_PREFIX}: Claude Code is unable to respond to this request, which appears to violate our Usage Policy (https://www.anthropic.com/legal/aup). Try rephrasing the request or attempting a different approach.`
-    : `${API_ERROR_MESSAGE_PREFIX}: Claude Code is unable to respond to this request, which appears to violate our Usage Policy (https://www.anthropic.com/legal/aup). Please double press esc to edit your last message or start a new session for Claude Code to assist with a different task.`
+    ? `${API_ERROR_MESSAGE_PREFIX}: Chuck Code is unable to respond to this request, which appears to violate our Usage Policy. Try rephrasing the request or attempting a different approach.`
+    : `${API_ERROR_MESSAGE_PREFIX}: Chuck Code is unable to respond to this request, which appears to violate our Usage Policy. Please double press esc to edit your last message or start a new session for Chuck Code to assist with a different task.`
 
   const modelSuggestion =
-    model !== 'claude-sonnet-4-20250514'
-      ? ' If you are seeing this refusal repeatedly, try running /model claude-sonnet-4-20250514 to switch models.'
+    model !== 'chuck-sonnet'
+      ? ' If you are seeing this refusal repeatedly, try running /model chuck-sonnet to switch models.'
       : ''
 
   return createAssistantAPIErrorMessage({

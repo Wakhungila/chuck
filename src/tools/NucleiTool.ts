@@ -5,8 +5,8 @@ export const NucleiTool = {
   name: 'nuclei',
   description: 'Advanced template-based vulnerability scanner. Best for finding specific CVEs, misconfigurations, and info leaks.',
   inputSchema: z.object({
-    target: z.string().description('The URL or IP to scan'),
-    template: z.string().optional().description('Specific template or category (e.g., "cves", "exposures")'),
+    target: z.string() .describe('The URL or IP to scan'),
+    template: z.string().optional() .describe('Specific template or category (e.g., "cves", "exposures")'),
     severity: z.enum(['info', 'low', 'medium', 'high', 'critical']).optional()
   }),
 

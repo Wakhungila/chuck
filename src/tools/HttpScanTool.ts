@@ -5,8 +5,8 @@ export const HttpScanTool = {
   name: 'http_scan',
   description: 'Fingerprints web technologies, headers, and response metadata.',
   inputSchema: z.object({
-    url: z.string().description('The target URL'),
-    user_agent: z.string().optional().description('Custom User-Agent header')
+    url: z.string() .describe('The target URL'),
+    user_agent: z.string().optional() .describe('Custom User-Agent header')
   }),
 
   async call(input: { url: string; user_agent?: string }) {

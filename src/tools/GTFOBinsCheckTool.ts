@@ -5,7 +5,7 @@ export const GTFOBinsCheckTool = {
   name: 'GTFOBinsCheck',
   description: 'Checks if a binary has known privilege escalation vectors (SUID, sudo, etc.) on GTFOBins.',
   inputSchema: z.object({
-    binary: z.string().description('The binary name to check (e.g., "find", "vim").'),
+    binary: z.string() .describe('The binary name to check (e.g., "find", "vim").'),
   }),
 
   async call(input: { binary: string }) {

@@ -5,7 +5,7 @@ export const ServerVersionCheckerTool = {
   name: 'ServerVersionChecker',
   description: 'Fetches the HTTP headers from a URL to identify the server software and versions (e.g., Apache, Nginx, PHP).',
   inputSchema: z.object({
-    url: z.string().description('The target URL to check (e.g., "http://example.com").'),
+    url: z.string() .describe('The target URL to check (e.g., "http://example.com").'),
   }),
 
   async call(input: { url: string }) {

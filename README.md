@@ -1,6 +1,6 @@
 # Chuck Code - Offensive Security Edition
 
-This project is a specialized refactor of Anthropic's Claude Code CLI, optimized for **authorized offensive security research**, bug bounty hunting, and smart contract auditing. Chuck transforms the standard assistant into an adversarial agent capable of autonomous vulnerability research and exploitation Proof-of-Concept (POC) development.
+This project is optimized for **authorized offensive security research**, bug bounty hunting, and smart contract auditing. Chuck transforms the standard assistant into an adversarial agent capable of autonomous vulnerability research and exploitation Proof-of-Concept (POC) development.
 
 ## Core Philosophical Shift
 

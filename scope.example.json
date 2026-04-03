@@ -1,0 +1,16 @@
+{
+  "_comment": "Copy to .chuck/scope.json and edit. Remove _comment field.",
+  "engagement": "Example Pentest — Acme Corp",
+  "targets": [
+    "192.168.1.0/24",
+    "*.acme-staging.com",
+    "api.acme.com"
+  ],
+  "excludeTargets": [
+    "192.168.1.1"
+  ],
+  "allowedTools": [
+    "nmap", "subfinder", "nuclei", "httpx",
+    "curl", "ffuf", "bash", "grep", "read_file", "whois"
+  ]
+}

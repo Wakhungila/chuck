@@ -1,13 +1,35 @@
+```
+# Dependencies
 node_modules/
-*.lock
-package-lock.json
-sessions/
-.chuck/db/
+bun.lock
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+
+# Runtime
+.chuck-ai
+chuck
 chuck-ai
-chuck-ai.map
-sessions/
-.chuck/db/
-chuck-ai
-chuck-ai.map
-chuck-ai
-chuck-ai
+
+# Maps
+*.map
+```

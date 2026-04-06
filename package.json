@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "NODE_ENV=production bun run src/main.tsx",
-    "build": "NODE_ENV=production bun build ./src/main.tsx --outfile ./chuck-ai --target node --bundle --external react-devtools-core --minify && echo '#!/usr/bin/env bun' > ./chuck && cat ./chuck-ai >> ./chuck && chmod +x chuck",
+    "build": "NODE_ENV=production bun build ./src/main.tsx --outfile ./chuck-ai --target node --bundle --alias:react-devtools-core=./src/stubs/react-devtools-core.ts --minify && echo '#!/usr/bin/env bun' > ./chuck && cat ./chuck-ai >> ./chuck && chmod +x chuck",
     "start": "NODE_ENV=production ./chuck"
   },
   "dependencies": {

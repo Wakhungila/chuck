@@ -1,11 +1,14 @@
 {
   "name": "chuck",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
+  "bin": {
+    "chuck": "./chuck"
+  },
   "scripts": {
-    "dev": "bun run src/main.tsx",
-    "build": "bun build ./src/main.tsx --outfile ./chuck-ai --target node --bundle --external react-devtools-core --sourcemap && chmod +x chuck-ai",
-    "start": "./chuck-ai"
+    "dev": "NODE_ENV=production bun run src/main.tsx",
+    "build": "NODE_ENV=production bun build ./src/main.tsx --outfile ./chuck-ai --target node --bundle --external react-devtools-core --minify && echo '#!/usr/bin/env bun' > ./chuck && cat ./chuck-ai >> ./chuck && chmod +x chuck",
+    "start": "NODE_ENV=production ./chuck"
   },
   "dependencies": {
     "axios": "^1.7.7",

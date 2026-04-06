@@ -1,35 +1,39 @@
 ```
 # Dependencies
 node_modules/
-bun.lock
+.pnpm-store/
+.yarn/
+.yarn-cache/
 
-# Build artifacts
+# Build outputs
 dist/
 build/
-target/
+coverage/
+.eslintcache
 
-# Environment
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
 .env
 .env.local
 .env.*
 
-# Editors
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Logs
-*.log
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Temporary files
-*.tmp
-
-# Runtime
-.chuck-ai
-chuck
-chuck-ai
-
-# Maps
-*.map
+# TypeScript/JavaScript specific
+*.tsbuildinfo
+.next/
+.nuxt/
 ```
